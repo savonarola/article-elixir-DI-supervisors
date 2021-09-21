@@ -4,7 +4,7 @@
 
 We need siblings of supervisors to find out about each other. Preferably we also want our supervisor tree to be hermetic: the possibility to start multiple instances of them with different options.
 
-Example: a pipeline for processing network data which consists of several intercommunicating processes that start and consume data. We would like to start different pipelines in an ad-hoc fashion for different data sources so they should not interfere with each other and be hermetic.
+Example: a pipeline for processing network data which consists of several intercommunicating processes that start and consume data. We would like to start different pipelines in an ad-hoc fashion for different data sources so they should not interfere and be hermetic.
 
 There are several ways to do it.
 
@@ -12,7 +12,7 @@ There are several ways to do it.
 
 ### Hardcoded process name registration
 
-The easiest and most common way is to simply register your processes using global names
+The easiest and most common way is to register your processes using global names
 
 ```elixir
 defmodule PipelineSupervisor do
@@ -74,21 +74,21 @@ defmodule SomeConsumer do
 end
 ```
 
-Instead of implicit name registration provided by erlang you can try to use some process registry which will serve basically as DI container: a way to register and lookup dependencies (process pid) by some arbitrary id.
+Instead of implicit name registration provided by erlang, you can use some process registry that will serve basically as DI container: a way to register and lookup dependencies (process pid) by some arbitrary id.
 
-These includes: 
+These include: 
 * Using a well-known and reliable registry, for instance, Elixir.Registry
 * Using some self-written registry that stores its state (process pid mappings) as GenServer State or in ETS
 
-When the process starts, it registers itself. When its pid is required by other processes they just ask this DI registry for necessary dependency.
+When the process starts, it registers itself. When its pid is required by other processes they ask this DI registry for necessary dependency.
 
-But the problem is still here. It is a chicken and egg dilemma: To call registry you need in turn to know its pid or name.
+But the problem is still here. It is a chicken and egg dilemma: To call registry, you need to know its pid or name.
 
-All in all this solution is easy and common but it prevents us to run the supervision tree multiple times because of the hardcoded process name of Consumer.
+This solution is easy and common, but it prevents us from running the supervision tree multiple times because of the hardcoded process name of Consumer.
 
 ### Prefixed process name registration
 
-To make our supervision tree hermetic we can prefix all processes with some common key and make it an init parameter of our core supervisor.
+To make our supervision tree hermetic, we can prefix all processes with some common key and make it an init parameter of our core supervisor.
 
 ```elixir
 defmodule PipelineSupervisor do
@@ -112,7 +112,7 @@ Although it gets the job done, it clutters the process namespace and creates API
 
 ### Implicit registry using Supervisor.which_children function
 
-If we pay closer attention to Supervisor we can notice that any supervisor is basically a registry itself. It naturally knows pids of all its processes and all processes have unique ids local to the supervisor.
+If we pay closer attention to Supervisor we can notice that any supervisor is a registry itself. It naturally knows pids of all its processes and all processes have unique ids local to the supervisor.
 
 Unfortunately (or luckily) Supervisors are single-purpose building blocks and therefore lack convenient apis to lookup their children. However, we still have the way to use supervisors as registers using  [`Supervisor.which_children`](https://hexdocs.pm/elixir/1.12/Supervisor.html#which_children/1) function.
 
@@ -237,4 +237,4 @@ This method of DI is convoluted and probably not worth it just for the sake of i
 
 ## Conslusion
 
-Some of the options that I showed may seem complex and unnecessary. And in many cases that is completely true. But my point is that using OTP is much more than just writing GenServers and occasionally some custom Supervisor or two. OTP gives us a pretty basic but very smart combination of base elements that we can use to form some higher-level usage patterns. Our task as a community is to discover those patterns and make them simple to use.
+Some of the options that I showed may seem complex and unnecessary. And in many cases that is entirely true. But my point is that using OTP is much more than just writing GenServers and occasionally some custom Supervisor or two. OTP gives us a pretty basic but very smart combination of base elements that we can use to form some higher-level usage patterns. Our task as a community is to discover those patterns and make them simple to use.
